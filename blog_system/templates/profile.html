@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+
+                <!-- 显示头像（新增） -->
+                {% if user.avatar %}
+                    <img src="{{ url_for('static', filename=user.avatar) }}"
+                         class="rounded-circle mb-3"
+                         style="width:100px; height:100px; object-fit:cover;">
+                {% else %}
+                    <!-- 用户无头像时，后端会为 user.avatar 赋随机默认头像 -->
+                    <img src="{{ url_for('static', filename='images/默认图像/default.jpg') }}"
+                         class="rounded-circle mb-3"
+                         style="width:100px; height:100px; object-fit:cover;">
+                {% endif %}
+
+                <!-- 用户名可点击跳转到头像更换页面 -->
+                <h3>
+                    <a href="{{ url_for('change_avatar', username=user.username) }}"
+                       style="text-decoration:none; color:inherit;">
+                        {{ user.username }}
+                    </a>
+                </h3>
+
+                {% if user.is_vip %}
+                <span class="badge vip-badge mb-2">VIP会员</span>
+                {% endif %}
+
+                <p class="text-muted">注册于 {{ user.created_at.strftime('%Y-%m-%d') }}</p>
+
+                {% if session.user_id == user.id %}
+                <a href="{{ url_for('vip_purchase') }}" class="btn btn-outline-warning btn-sm">
+                    {% if user.is_vip %}续费VIP{% else %}升级VIP{% endif %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">最近文章</h4>
+            </div>
+            <div class="card-body">
+                {% if articles %}
+                    <ul class="list-group">
+                        {% for article in articles %}
+                        <li class="list-group-item">
+                            <a href="{{ url_for('article_detail', article_id=article.id) }}">
+                                {{ article.title }}
+                            </a>
+                            <span class="text-muted float-end">
+                                {{ article.created_at.strftime('%Y-%m-%d') }}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">暂无公开文章。</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

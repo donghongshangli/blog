@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- 搜索表单 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('search') }}" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="输入标题/内容/标签关键词..." 
+                           value="{{ keyword }}">
+                </div>
+                <div class="col-md-4">
+                    <select name="category" class="form-select">
+                        <option value="">全部分类</option>
+                        {% for cate, count in categories %}
+                        <option value="{{ cate }}" {% if category == cate %}selected{% endif %}>
+                            {{ cate }} ({{ count }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">搜索</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 搜索结果统计 -->
+    {% if keyword or category %}
+    <div class="alert alert-info">
+        找到 {{ articles.total }} 篇相关文章
+    </div>
+    {% endif %}
+
+    <!-- 文章列表 -->
+    <div class="row">
+        {% if articles.items %}
+            {% for article in articles.items %}
+            <div class="col-md-12 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('article_detail', article_id=article.id) }}" class="text-decoration-none">
+                                {{ article.title }}
+                            </a>
+                        </h5>
+                        <div class="text-muted small mb-2">
+                            <span>分类：{{ article.category }}</span> |
+                            <span>发布时间：{{ article.created_at.strftime('%Y-%m-%d') }}</span> |
+                            <span>标签：{{ article.tags }}</span>
+                        </div>
+                        <p class="card-text">{{ article.summary or article.content[:150] }}...</p>
+                        <a href="{{ url_for('article_detail', article_id=article.id) }}" class="btn btn-sm btn-outline-primary">
+                            阅读全文
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-warning text-center">
+                    未找到相关文章，请调整关键词或分类
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 分页控件 -->
+    {% if articles.pages > 1 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if articles.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search', q=keyword, category=category, page=articles.prev_num) }}">
+                    上一页
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in articles.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == articles.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('search', q=keyword, category=category, page=page_num) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if articles.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search', q=keyword, category=category, page=articles.next_num) }}">
+                    下一页
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

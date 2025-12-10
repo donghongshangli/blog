@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">VIP会员购买 / 续费</h4>
+        </div>
+
+        <div class="card-body">
+
+            <!-- 用户信息 -->
+            <div class="text-center mb-4">
+                <h5>当前账号：{{ session.username }}</h5>
+                <p class="text-muted">
+                    当前VIP状态：
+                    {% if session.is_vip %}
+                        已开通（可续费）
+                    {% else %}
+                        未开通
+                    {% endif %}
+                </p>
+
+                <h5 class="text-primary">
+                    钱包余额：{{ user.wallet_balance }} 文币
+                </h5>
+
+                <a href="{{ url_for('wallet') }}" class="btn btn-outline-primary btn-sm mt-2">
+                    充值文币
+                </a>
+            </div>
+
+            <!-- VIP 套餐 -->
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark text-center">
+                            <h5>VIP 会员套餐</h5>
+                        </div>
+
+                        <div class="card-body text-center">
+                            <p class="fs-3">¥29.9 / 月 或 300 文币</p>
+
+                            <ul class="list-unstyled text-start mb-4">
+                                <li>✅ 查看VIP专属文章</li>
+                                <li>✅ 发布私密/密码保护文章</li>
+                                <li>✅ 无广告浏览体验</li>
+                            </ul>
+
+                            <!-- 现金支付 -->
+                            <form action="{{ url_for('vip_upgrade') }}" method="POST" class="mb-2">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    {% if session.is_vip %}现金续费{% else %}现金开通{% endif %}
+                                </button>
+                            </form>
+
+                            <!-- 文币支付 -->
+                            <form action="{{ url_for('vip_pay_with_wallet') }}" method="POST">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    使用 300 文币购买
+                                </button>
+                            </form>
+
+                            <p class="text-muted mt-2">文币余额不足？请前往充值。</p>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

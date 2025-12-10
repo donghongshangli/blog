@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">二维码支付</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>订单信息</h5>
+                    <table class="table table-bordered">
+                        <tr>
+                            <td>商品名称</td>
+                            <td>文币充值</td>
+                        </tr>
+                        <tr>
+                            <td>充值金额</td>
+                            <td>¥{{ money }}</td>
+                        </tr>
+                        <tr>
+                            <td>获得文币</td>
+                            <td>{{ coins }} 文币</td>
+                        </tr>
+                        {% if bonus %}
+                        <tr>
+                            <td>首次充值奖励</td>
+                            <td class="text-success">+{{ bonus }} 文币</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td>总计获得</td>
+                            <td class="text-success font-weight-bold">{{ total_coins }} 文币</td>
+                        </tr>
+                    </table>
+
+                    <div class="alert alert-info">
+                        <h6>支付说明：</h6>
+                        <p class="mb-1">1. 请使用微信或支付宝扫描右侧二维码</p>
+                        <p class="mb-1">2. 支付完成后，页面将自动跳转</p>
+                        <p class="mb-0">3. 如未自动跳转，请点击"确认支付"按钮</p>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button class="btn btn-success btn-lg" onclick="confirmPayment()">确认支付</button>
+                    </div>
+                </div>
+
+                <div class="col-md-6 text-center">
+                    <h5>扫码支付</h5>
+                    
+                    <!-- 微信支付 -->
+                    <div class="qr-code-container p-3 border rounded mb-3">
+                        <h6 class="text-primary">微信支付</h6>
+                        <img src="{{ url_for('static', filename='images/wechat_pay.png') }}?v=20231210" 
+                             alt="微信支付二维码" 
+                             class="img-fluid"
+                             style="max-width: 250px;">
+                        <p class="mt-2 text-muted">请使用微信扫描上方二维码</p>
+                    </div>
+                    
+                    <!-- 支付宝 -->
+                    <div class="qr-code-container p-3 border rounded">
+                        <h6 class="text-primary">支付宝</h6>
+                        <img src="{{ url_for('static', filename='images/alipay.png') }}?v=20231210" 
+                             alt="支付宝二维码" 
+                             class="img-fluid"
+                             style="max-width: 250px;">
+                        <p class="mt-2 text-muted">请使用支付宝扫描上方二维码</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 模态框 -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">支付确认</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>请确认您是否已完成支付？</p>
+                <p class="text-muted">如果已经完成支付，点击"确认"按钮为您充值文币。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" onclick="processPayment()">确认已完成支付</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 确认支付按钮
+function confirmPayment() {
+    const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+    modal.show();
+}
+
+// 处理支付
+function processPayment() {
+    // 显示加载状态
+    const confirmBtn = event.target;
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+    
+    // 模拟支付处理延迟
+    setTimeout(() => {
+        // 发送请求到服务器完成充值
+        fetch("{{ url_for('wallet_recharge') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: "money={{ money }}"
+        })
+        .then(response => {
+            if (response.redirected) {
+                // 如果服务器返回重定向，则跟随重定向
+                window.location.href = response.url;
+            } else {
+                // 否则显示成功消息并手动跳转
+                alert('充值成功！获得 {{ total_coins }} 文币');
+                window.location.href = "{{ url_for('wallet') }}";
+            }
+        })
+        .catch(error => {
+            console.error('支付验证错误:', error);
+            alert('网络错误，请重试');
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '确认已完成支付';
+        });
+    }, 2000);
+}
+</script>
+
+<style>
+.qr-code-container {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.countdown-container {
+    margin-top: 20px;
+}
+
+.progress {
+    height: 10px;
+    margin-top: 10px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}

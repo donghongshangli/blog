@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>更换头像</h3>
+
+<h5>默认头像库</h5>
+<div class="row">
+    {% for img in images %}
+    <div class="col-3 text-center">
+        <form method="POST">
+            <input type="hidden" name="avatar" value="{{ img }}">
+            <button style="border: none; background: none;" type="submit">
+                <img src="{{ url_for('static', filename=img) }}" 
+                     class="img-thumbnail" width="120">
+            </button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+<hr>
+
+<h5>上传自定义头像</h5>
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_avatar') }}">
+    <input type="file" name="file" class="form-control mb-3">
+    <button type="submit" class="btn btn-success">上传头像</button>
+</form>
+
+{% endblock %}
